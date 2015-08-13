@@ -1,0 +1,499 @@
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Portable {{{
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim:fdm=marker
+if filereadable("/etc/vimrc")
+  source /etc/vimrc
+endif
+
+if filereadable("/etc/vim/vimrc")
+  source /etc/vim/vimrc
+endif
+
+" 重新定義 runtimepath
+let s:vimrc_path = substitute(expand('<sfile>:p:h'), '\', '/', 'g')
+let &runtimepath = s:vimrc_path . '/vimfiles,' . &runtimepath
+
+" }}}
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Shared plugin setup for Vundle {{{
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+filetype off
+
+call vundle#begin('/home/vim/vimfiles/vundle')
+" 強大又花俏的 status 訊息列
+Bundle 'bling/vim-airline'
+
+Bundle 'tomasr/molokai'
+
+" 好用的 bookmark 管理
+Bundle 'kshenoy/vim-signature'
+
+" 用紅色區塊標記以空白結束的行
+Bundle 'bronson/vim-trailing-whitespace'
+
+" 多個游標（高仿 SublimeText）
+Bundle 'terryma/vim-multiple-cursors'
+
+" 展開選擇區域
+Bundle 'terryma/vim-expand-region'
+
+" Bundle 'WolfgangMehner/vim-plugins'
+
+Bundle 'Chiel92/vim-autoformat'
+Bundle 'bhilburn/kernel-coding-style'
+
+Bundle 'Shougo/vimproc.vim', { 'do': 'make' }
+Bundle 'Shougo/unite.vim'
+
+" 自動檢查 syntax 不過用起來感覺有點問題，暫時關閉掉
+"Plugin 'scrooloose/syntastic'
+
+" 目錄導覽功能
+Bundle 'scrooloose/nerdtree'
+
+" {{{ Autocomplete
+" 兩種程式碼自動提示建議選擇一個使用
+" {{{ NeoComplete
+" 搭配 ctags 產生標籤檔，稍微不方便，不過因為是手動產生提示內容，所以速度較快，但偶爾會有誤判
+"Plugin 'Shougo/neocomplete.vim'
+"Plugin 'Shougo/neocomplcache.vim'
+" }}}
+" {{{ YouCompleteMe
+" 自己解析程式碼來產生，比較方便，但速度比較慢
+Plugin 'Valloric/YouCompleteMe', { 'do': './install.sh --clang-completer' }
+"}}}
+" }}}
+
+" 可以結合 Autocomplete 套件，顯示 tag 清單
+Bundle 'majutsushi/tagbar'
+
+Bundle 'junegunn/seoul256.vim'
+Bundle 'junegunn/vim-easy-align'
+
+" {{{ 快速程式碼補全工具
+" 建議選擇一個，xtemplate 是比較後面出來的，改善了不少效能，不過功能沒 snipmate 那麼強
+"Bundle 'garbas/vim-snipmate'
+Bundle 'drmingdrmer/xptemplate'
+" }}}
+Bundle 'jiangmiao/auto-pairs'
+
+Bundle 'marcweber/vim-addon-mw-utils'
+
+" Bundle 'shawncplus/phpcomplete.vim'
+" Bundle 'm2mdas/phpcomplete-extended'
+
+Bundle 'thinca/vim-localrc'
+
+"Bundle 'marijnh/tern_for_vim'
+
+call vundle#end()
+
+filetype plugin indent on
+
+" }}}
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" General {{{
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" 修正 vim 在 terminal 時方向鍵會顯示 abcd 問題
+if $TERM == "xterm"
+    set term=xterm
+endif
+
+" 保留 vim 最後顯示內容在 terminal 顯示，便於關閉檔案後，還可以複製內容
+set t_ti= t_te=
+
+" 關閉相容 vi 模式
+set nocompatible
+
+" 保留 100 個使用過的指令
+set history=100
+
+" 設定可以 複製、讀取、寫入的 行數
+set viminfo='1000,<1000,s1000,h
+
+" 操作過程有衝突時，以明確的文字來詢問
+set confirm
+
+" 檢查檔案是否被修改
+set autoread
+
+" 設定搜尋忽略大小寫
+"set ignorecase smartcase
+
+" 自動切換到開啟檔案為工作目錄
+" autocmd BufEnter * if expand("%:p:h") !~ '^/tmp' | silent! lcd %:p:h | endif
+
+" 啟用 modeline 功能
+set modeline
+" 設定 modeline 搜尋的範圍行數
+set modelines=10
+
+" 允許 mouse 在所有 modes
+" n Normal mode
+" v Visual mode
+" i Insert mode
+" c Command mode
+" h all previous modes when in a help file
+" a all previous modes
+" r for |hit-enter| prompt
+" A auto-select in Visual mode
+" set mouse=nvc
+
+" 關閉所有警告訊息
+set noerrorbells
+
+" 關閉閃爍訊息
+set novisualbell
+
+" 使vim color 顯示到256色
+set t_Co=256
+
+" 記住最後的位置
+" if has("autocmd")
+"   au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+" endif
+
+" 變更 swp(swap) 檔案存放位置
+let directory = expand('~/.vim/swap/')
+if !isdirectory(directory)
+    call mkdir(directory, "p")
+endif
+exec 'set directory=' . directory
+" 關閉 swp(swap) 功能（不建議）
+" set noswapfile
+" 設定寫入變更到 swap 等待時間（ms）
+set updatetime=500
+
+if has('persistent_undo')
+    " 設定恢復紀錄存放位置
+    let undodir = expand('~/.vim/undo/')
+    if !isdirectory(undodir)
+        call mkdir(undodir, "p")
+    endif
+    exec 'set undodir=' . undodir
+    " 開啟保留性的 undo（主要讓 save 後，還可以進行 undo，預設為存檔後會清除 undo 紀錄）
+    set undofile
+    " 設定可以 undo 的數量
+    set undolevels=1000
+    " 設定 undofile 的容量
+    set undoreload=10000
+endif
+
+" 設定備份
+let backupdir = expand('~/.vim/backup/')
+if !isdirectory(backupdir)
+    call mkdir(backupdir, "p")
+endif
+exec 'set backupdir=' . backupdir
+set backup
+set writebackup
+set backupskip=/tmp/*,/private/tmp/*
+
+" 變更 view 檔案存放位置
+let viewdir = expand('~/.vim/view/')
+if !isdirectory(viewdir)
+    call mkdir(viewdir, "p")
+endif
+exec 'set viewdir=' . viewdir
+
+" 保存&載入 最後 viewe 狀態
+if filereadable(expand('%:p'))
+    autocmd BufWinLeave * mkview
+    autocmd BufWinEnter * silent loadview
+    autocmd BufWinLeave *.* mkview!
+    autocmd BufWinEnter *.* silent loadview
+endif
+
+" }}}
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" UI/Colors {{{
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" 修改vim顏色
+set bg=dark
+
+" 在 cmd 模式下，當按下 tab 鍵時顯示建議的命令
+set wildmenu
+
+" 顯示右下角設定值
+set ruler
+
+" 顯示行號
+set number
+
+" 設定 backspace 功能
+" indent 可以刪除縮排
+" eol 可以刪除斷行符號
+" start 可以刪除原有字元
+set backspace=indent,eol,start
+
+" 將 status command bar 改成兩行
+set laststatus=2
+
+" 修改狀態列顯示方式。%F顯示檔名加路徑，
+"set statusline =
+"set statusline+=%4*%<\%m%<[%F\%r%h%w]\          " 顯示檔案路徑
+"set statusline+=[%{&ff},%{&fileencoding},%Y]    " 顯示 EOF 格式、編碼格式、檔案類型
+"set statusline+=%=\                             " 定位到右邊
+"set statusline+=[Position=%l,%v,%p%%]\          " 顯示 cursor 位置
+"set statusline+=[Total=%L]                      " 顯示總行數
+" 不喜歡了，找到 vim-airline 代替了
+
+" 保留游標列最少顯示行數
+set scrolloff=7
+
+" 保留游標欄最少顯示欄數。在有設定 nowrap 時很好用
+set sidescrolloff=7
+
+" 顯示目前的游標位置
+set cursorline
+
+" 第幾行第幾個字
+set cin
+set ru
+
+" 語法上色顯示
+syntax on
+
+" 設定使用的配色
+" colorscheme torte
+
+colorscheme molokai
+
+"hi StatusLine   guifg=#000000 guibg=#8ae234 gui=none
+"hi StatusLineNC guifg=#FFFFFF guibg=#3C993C gui=none
+" 
+"hi link MBENormal Comment
+"hi link MBEChanged Special
+"hi link MBEVisibleNormal SpecialKey
+"hi link MBEVisibleChanged Title
+"hi link MBEVisibleActiveNormal StatusLine
+"hi link MBEVisibleActiveChanged Error
+
+" }}}
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Text Formatting/Tab settings {{{
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" 啟用vim自動縮排
+" 執行 set paste 再貼上內容, 貼完之後再執行 set nopaste 就可以了
+"set autoindent
+set smartindent
+
+" 不自動斷行
+set nowrap
+
+" 讓自動斷行在 空白 中間斷行，而盡量不要切斷單字
+set linebreak
+
+" 加強斷行模式對中文的支援程度
+set formatoptions+=mB
+
+" 允許左右方向鍵可以移動到上一行、下一行
+set whichwrap=b,s,<,>,[,]
+
+" 使用空白代替tab
+set expandtab
+
+" 縮排的寬度
+set shiftwidth=2
+" tab代表的字元數
+set tabstop=2
+
+" 設定高亮度顯示搜尋結果
+set hlsearch
+" 在關鍵字還沒完全輸入完畢前就顯示結果
+set incsearch
+
+" 防止如中文、Unicode 這類雙字元集的無法在 vim 中正長顯示問題
+set ambiwidth=double
+
+" 折疊程式碼
+" set foldmethod=syntax
+set foldmethod=marker
+
+" 設定折疊深度
+" set foldnestmax=20
+
+" 設定一開始折疊的深度
+" set foldlevelstart=10
+
+" }}}
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" File settings {{{
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" 開啟檔案預設編碼
+set encoding=utf-8
+set fileencoding=utf-8
+set fileencodings=utf-8,big5,euc-jp,gbk,euc-kr,utf-bom,iso8859-1
+set termencoding=utf-8
+set fileformats=unix,dos,mac
+set fileformat=unix
+
+" }}}
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Plugin Settings {{{
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-localrc {{{
+let g:localrc_filename = '.vimrc'
+" }}}
+
+" vim-airline {{{
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#left_sep = ' '
+let g:airline#extensions#tabline#left_alt_sep = '|'
+let g:airline_section_b = '%{getcwd()}'
+let g:airline_section_c = '%t'
+" 讓 airline 支援 Syntastic
+let g:airline#extensions#syntastic#enabled = 1
+" }}}
+
+" Autoformat {{{
+let g:formatprg_c = "astyle"
+let g:formatprg_args_c = "--mode=cs --style=linux -pcHs4"
+" }}}
+
+" DoxygenToolkit {{{
+let g:DoxygenToolkit_briefTag_pre = "@Synopsis  "
+let g:DoxygenToolkit_paramTag_pre = "@Param "
+let g:DoxygenToolkit_returnTag = "@Returns   "
+let g:DoxygenToolkit_blockHeader = "--------------------------------------------------------------------------"
+let g:DoxygenToolkit_blockFooter = "----------------------------------------------------------------------------"
+let g:DoxygenToolkit_authorName = "Mathias Lorente"
+let g:DoxygenToolkit_licenseTag = "My own license"
+" }}}
+
+" Bash-Support {{{
+let g:BASH_GlobalTemplateFile = s:vimrc_path . '/vimfiles/vundle/vim-plugins/bash-support/templates/Templates'
+" }}}
+
+" C-Support {{{
+let g:C_GlobalTemplateDir = s:vimrc_path . '/vimfiles/vundle/vim-plugins/c-support/templates'
+let g:C_GlobalTemplateFile = g:C_GlobalTemplateDir . '/Templates'
+let g:C_LoadMenus = 'no'
+let g:C_Styles = { '*.c,*.h' : 'C', '*.cc,*.cpp,*.c++,*.C,*.hh,*.h++,*.H' : 'CPP' }
+" }}}
+
+" PHP Auto Complete {{{
+au BufNewFile,BufRead *.phpt setfiletype php
+autocmd FileType php set omnifunc=phpcomplete#CompletePHP
+" }}}
+
+" YouCompleteMe {{{
+let g:ycm_global_ycm_extra_conf = s:vimrc_path . '/vimfiles/vundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
+let g:ycm_confirm_extra_conf = 0
+nnoremap <leader>jd :YcmCompleter GoToDefinitionElseDeclaration<CR>
+
+let g:ycm_enable_diagnostic_signs = 0
+let g:ycm_show_diagnostics_ui = 0
+
+" 設定輸入第幾個字後開始顯示自動補全提示
+let g:ycm_min_num_of_chars_for_completion=2
+" 關閉 cache 解析的自動補全，每次開啟都重新解析
+let g:ycm_cache_omnifunc=1
+" 開關 語法關鍵字自動補全
+let g:ycm_seed_identifiers_with_syntax=1
+" 開關 註解、字串 收錄到自動補全中
+let g:ycm_collect_identifiers_from_comments_and_strings = 0
+
+" 開關 註解 中關鍵字也能自動補全
+let g:ycm_complete_in_comments = 1
+" 開關 字串 中關鍵字也能自動補全
+let g:ycm_complete_in_strings = 1
+" }}}
+
+" Syntastic {{{
+"set statusline+=%#warningmsg#
+"set statusline+=%{SyntasticStatuslineFlag()}
+"set statusline+=%*
+"
+"let g:syntastic_always_populate_loc_list = 0
+"let g:syntastic_auto_loc_list = 0
+"let g:syntastic_check_on_open = 0
+"let g:syntastic_check_on_wq = 0
+" }}}
+
+" NERDTree {{{
+let NERDTreeChDirMode = 2
+let NERDTreeWinSize = 30
+nmap <F5>  :NERDTreeToggle<CR>
+" }}}
+
+" Tagbar {{{
+let g:tagbar_left = 1
+let g:tagbar_autofocus = 1
+nmap <F8> :TagbarToggle<CR>
+" }}}
+
+map K <Plug>(expand_region_expand)
+map J <Plug>(expand_region_shrink)
+
+" }}}
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Key Mappings {{{
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" 快速切換檔案編碼 Big5 and UTF-8
+" set <C-b>=^U
+" set <C-b>=^B
+" map <C-u> :set fileencoding=utf-8<CR>
+" map <C-b> :set fileencoding=big5<CR>
+
+" 在編輯模式下按下Ctrl + F11插入目前時間
+imap <F11> <C-R>=strftime("%Y/%m/%d %H:%M:%S")<BAR><CR>
+
+" 切換前後 buffer
+nmap bn :bnext<CR>
+nmap bp :bprev<CR>
+
+" 關閉目前正在編輯區中的檔案
+nmap bc <Leader>bd<CR>
+
+" 關閉目前正在編輯區中的檔案（連同 split window 都會關閉）
+nmap bw :bw<CR>
+
+" 切換前後 tab
+nmap tn :tabn<CR>
+nmap tp :tabp<CR>
+
+" 使用 sudo 寫入檔案
+cmap w!!<CR> silent w !sudo tee % > /dev/null<CR>
+cmap wq!!<CR> silent w !sudo tee % > /dev/null<CR> \| :q!<CR>
+
+" redo
+nmap U <C-R>
+
+" 刪除所有 marks
+nmap dma :delmarks a-zA-Z0-9<CR>
+
+" 設定Ctrl+s為存檔動作
+nmap <C-S> :update<CR><ESC>
+vmap <C-S> <C-C>:update<CR><ESC>
+imap <C-S> <C-O>:update<CR><ESC>
+
+" 插入 modeline 內容到檔案結尾
+function! AppendModeline()
+    call append(line('$'), '')
+    call append(line('$'), '/*')
+    call append(line('$'), ' * Local variables:')
+    call append(line('$'), ' * tab-width: ' . &shiftwidth)
+    call append(line('$'), ' * c-basic-offset: 4')
+    call append(line('$'), ' * End:')
+    call append(line('$'), ' * vim600: sw=' . &shiftwidth . ' ts=' . &tabstop . ' fdm=' . &foldmethod)
+    call append(line('$'), ' * vim<600: sw=' . &shiftwidth . ' ts=' . &tabstop)
+    call append(line('$'), ' */')
+    exec line('$')
+endfunction
+nnoremap <silent> <Leader>ml :call AppendModeline()<CR>
+
+" Autoformat
+nmap <silent> <C-S-f> :Autoformat<CR>
+
+" }}}
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Other Setup {{{
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" 啟用自動辨識檔案類型的 plugin。建議放在 vimrc 最後
+filetype on
+filetype plugin on
+filetype indent on
+
+" }}}
